@@ -90,3 +90,23 @@
 (defn pe8 [xx n]
   "Given a sequence find the greatest product of n sequential numbers"
   (apply max (map #(apply * %) (partition n 1 (explode-to-digits xx)))))
+
+(def fibo-sq
+  (lazy-cat []))
+
+(defrecord fibonacci-square
+  "The structure of a fibonacci-square"
+  [q q' p p' left middle right])
+
+(def not-nil?
+  "My own not nil test"
+  (complement nil?))
+
+(defn pe9-filt-fn [x]
+  "Filter for pe9"
+  (= 1000 (apply + x)))
+
+(defn pe9 [n]
+  "This is stupid but worked"
+    (filter pe9-filt-fn (filter not-nil? (for [x (range 1 n) y (range 1 n) z (range 1 n)]
+        (if (= (* z z) (+ (* x x) (* y y))) [x y z])))))
