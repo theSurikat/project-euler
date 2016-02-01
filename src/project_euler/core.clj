@@ -75,10 +75,6 @@
   "Finds the difference of the square of sums vs sum of squares"
   (- (square-of-sums n) (sum-of-squares n)))
 
-(defn prime? [n]
-  "Test if n is prime"
-    (empty? (filter #(= 0 (mod n  %)) (range 2 n))))
-
 (defn pe7 [n]
   "Get the nth prime number"
    (nth (take n (filter prime? (iterate inc 2))) (- n 1)))
@@ -110,3 +106,59 @@
   "This is stupid but worked"
     (filter pe9-filt-fn (filter not-nil? (for [x (range 1 n) y (range 1 n) z (range 1 n)]
         (if (= (* z z) (+ (* x x) (* y y))) [x y z])))))
+
+(def certainty 5)
+
+(defn prime? [n]
+  "Test if n is a prime"
+  (.isProbablePrime (BigInteger/valueOf n) certainty))
+
+(defn pe10 [n]
+  "Finds the sum of all the primes lower than n"
+  (apply + (filter prime? (range 0 n))))
+
+(defn triangle-number [n]
+  "Generates the nth triangle number"
+  (apply + (range 1 (+ n 1))))
+
+(def triangles
+  "List of the triangle numbers"
+  (map triangle-number (iterate inc 1)))
+
+(defn divisors [n]
+  "Find all the divisors of n"
+  (filter (comp zero? (partial rem n)) (range 1 (+ n 1))))
+
+(def t-divs
+  "All the divisors of triangle numbers"
+  (map divisors (take triangels)))
+
+(defn collatz [n]
+  "The collatz sequence for n"
+ (if (= n 1) '(1)
+  (cons n
+    (cond
+      (even? n) (collatz (/ n 2))
+      (= 1 n) 1
+      (odd? n) (collatz (+ (* 3 n) 1))))))
+
+(defn collatz-seqs [n]
+  (map collatz (take-while (partial >= n) (iterate inc (- n (/ n 5))))))
+
+(defn pe14 [n]
+  "Find the count of the collatz sequence for n"
+  (def seq-main (collatz-seqs n))
+  (def base (map count seq-main))
+  (def test (apply max base))
+  (def id (.indexOf base test))
+  (first (nth seq-main id)))
+
+(defn grid [x y]
+  (+ (* x (+ y 1)) (* (+ x 1) y)))
+
+(defn a-to-the-n [a n]
+  (apply *' (take n (repeat a))))
+
+(defn pe16 [a n]
+  "Given a sequence find the greatest product of n sequential numbers"
+  (apply + (explode-to-digits (a-to-the-n a n))))
