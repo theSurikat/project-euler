@@ -135,12 +135,12 @@
 
 (defn collatz [n]
   "The collatz sequence for n"
- (if (= n 1) '(1)
-  (cons n
-    (cond
-      (even? n) (collatz (/ n 2))
-      (= 1 n) 1
-      (odd? n) (collatz (+ (* 3 n) 1))))))
+  (if (= n 1) '(1)
+    (cons n
+      (cond
+        (even? n) (collatz (/ n 2))
+        (= 1 n) 1
+        (odd? n) (collatz (+ (* 3 n) 1))))))
 
 (defn collatz-seqs [n]
   (map collatz (take-while (partial >= n) (iterate inc (- n (/ n 5))))))
@@ -162,3 +162,50 @@
 (defn pe16 [a n]
   "Given a sequence find the greatest product of n sequential numbers"
   (apply + (explode-to-digits (a-to-the-n a n))))
+
+(def fib-seq
+  ((fn rfib [a b]
+    (lazy-seq (cons a (rfib b (+ a b)))))
+    0 1))
+
+(defn fs1 [q' p']
+  "Generate the three children fibo-squares"
+  [[(- p' q') q' p' (- (* 2 p') q')]
+  [q' p' (+ q' p') (+ (* 2 q') p')]
+  [p' q' (+ p' q') (+ (* 2 p') q')]])
+
+(def fibo-squares
+  "A list of the fibonacci-squares to represent "
+  ((fn fibo-square [q q' p p']
+    (lazy-cat (cons [q q' p p'] (fs1 q' p')))) 1 1 2 3))
+
+(defn sum [xx]
+  "Take the sum of a sequence"
+  (apply + xx))
+
+(defn fact [x]
+    (loop [n x f 1]
+        (if (= n 1)
+            f
+            (recur (dec n) (*' f n)))))
+
+(defn pe20 [x]
+  "Find the sum of the digits of a factorial"
+  (sum (explode-to-digits (fact x))))
+
+(defn divisors-2 [n]
+  "Find all the divisors of n"
+  (filter (comp zero? (partial rem n)) (range 1 n)))
+
+(defn sum-divs [n]
+  "Sum the divisors"
+  (sum (divisors-2 n)))
+
+(defn amicable? [n]
+  "Test to see if the number is amicable"
+  (def test (sum-divs n))
+  (if (and (= n (sum-divs test)) (not= test n)) true false))
+
+(defn pe21 [x]
+  "Find the sum of all the amicable numbers"
+  (sum (filter amicable? (range x))))
