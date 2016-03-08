@@ -1,5 +1,6 @@
 (ns project-euler.core
-  (:gen-class))
+  (:require [clojure.string :as str]
+            [project-euler.base :as base]))
 
 (defn -main
   "I don't do a whole lot ... yet."
@@ -8,7 +9,7 @@
 
 (defn pe1 [n]
   "Finds the sum of a set of number mod 3 and 5 below n"
-  (apply + (filter #(zero? (min (mod % 3) (mod % 5))) (range n))))
+  (base/sum (filter #(zero? (min (mod % 3) (mod % 5))) (range n))))
 
 (def fibo
   "Defines the fibonacci sequence"
@@ -16,7 +17,7 @@
 
 (defn pe2 [n]
   "Find the sum of fibonacci numbers up to n times"
-  (apply + (take-while (partial >= n)
+  (base/sum (take-while (partial >= n)
                         (filter even? fibo))))
 
 (defn getprime [num cur limit]
@@ -65,11 +66,11 @@
 
 (defn sum-of-squares [n]
   "Finds the sum of squares from 1 to n"
-    (apply + (map square (take n (iterate inc 1)))))
+    (base/sum (map square (take n (iterate inc 1)))))
 
 (defn square-of-sums [n]
   "Finds the square of the sum of 1 to n"
-  (square (apply + (take n (iterate inc 1)))))
+  (square (base/sum (take n (iterate inc 1)))))
 
 (defn pe6 [n]
   "Finds the difference of the square of sums vs sum of squares"
@@ -77,7 +78,7 @@
 
 (defn pe7 [n]
   "Get the nth prime number"
-   (nth (take n (filter prime? (iterate inc 2))) (- n 1)))
+   (nth (take n (filter base/prime? (iterate inc 2))) (- n 1)))
 
 (defn explode-to-digits [number]
   "Turn a string number into a sequence of its digits"
@@ -85,14 +86,10 @@
 
 (defn pe8 [xx n]
   "Given a sequence find the greatest product of n sequential numbers"
-  (apply max (map #(apply * %) (partition n 1 (explode-to-digits xx)))))
+  (apply max (map base/prod (partition n 1 (explode-to-digits xx)))))
 
 (def fibo-sq
   (lazy-cat []))
-
-(defrecord fibonacci-square
-  "The structure of a fibonacci-square"
-  [q q' p p' left middle right])
 
 (def not-nil?
   "My own not nil test"
@@ -100,7 +97,7 @@
 
 (defn pe9-filt-fn [x]
   "Filter for pe9"
-  (= 1000 (apply + x)))
+  (= 1000 (base/sum x)))
 
 (defn pe9 [n]
   "This is stupid but worked"
@@ -115,11 +112,11 @@
 
 (defn pe10 [n]
   "Finds the sum of all the primes lower than n"
-  (apply + (filter prime? (range 0 n))))
+  (base/sum (filter prime? (range 0 n))))
 
 (defn triangle-number [n]
   "Generates the nth triangle number"
-  (apply + (range 1 (+ n 1))))
+  (base/sum (range 1 (+ n 1))))
 
 (def triangles
   "List of the triangle numbers"
@@ -127,11 +124,11 @@
 
 (defn divisors [n]
   "Find all the divisors of n"
-  (filter (comp zero? (partial rem n)) (range 1 (+ n 1))))
+  (conj (filterv (comp zero? (partial rem n)) (range 1 (inc (/ n 2)))) n))
 
 (def t-divs
   "All the divisors of triangle numbers"
-  (map divisors (take triangels)))
+  (map divisors (take triangles)))
 
 (defn collatz [n]
   "The collatz sequence for n"
@@ -157,11 +154,11 @@
   (+ (* x (+ y 1)) (* (+ x 1) y)))
 
 (defn a-to-the-n [a n]
-  (apply *' (take n (repeat a))))
+  (base/prod (take n (repeat a))))
 
 (defn pe16 [a n]
   "Given a sequence find the greatest product of n sequential numbers"
-  (apply + (explode-to-digits (a-to-the-n a n))))
+  (base/sum (explode-to-digits (a-to-the-n a n))))
 
 (def fib-seq
   ((fn rfib [a b]
@@ -179,11 +176,7 @@
   ((fn fibo-square [q q' p p']
     (lazy-cat (cons [q q' p p'] (fs1 q' p')))) 1 1 2 3))
 
-(defn sum [xx]
-  "Take the sum of a sequence"
-  (apply + xx))
-
-(defn fact [x]
+(defn fact-1 [x]
     (loop [n x f 1]
         (if (= n 1)
             f
@@ -191,7 +184,7 @@
 
 (defn pe20 [x]
   "Find the sum of the digits of a factorial"
-  (sum (explode-to-digits (fact x))))
+  (base/sum (explode-to-digits (base/fact x))))
 
 (defn divisors-2 [n]
   "Find all the divisors of n"
@@ -199,7 +192,7 @@
 
 (defn sum-divs [n]
   "Sum the divisors"
-  (sum (divisors-2 n)))
+  (base/sum (divisors-2 n)))
 
 (defn amicable? [n]
   "Test to see if the number is amicable"
@@ -208,4 +201,55 @@
 
 (defn pe21 [x]
   "Find the sum of all the amicable numbers"
-  (sum (filter amicable? (range x))))
+  (base/sum (filter amicable? (range x))))
+
+(defn contains-value? [element coll]
+    (boolean (some #(= element %) coll)))
+
+(defn pe474 [n d]
+  "Find the number of divisors of n with d as the last digit"
+  (count
+    (filter not-nil? (map
+      #(if (contains-value? d %) %)
+        (map
+          #(into [] %)
+            (map explode-to-digits (divisors n)))))))
+
+
+(defn to-hash-map [x y]
+  {(keyword x) y})
+
+(def alphabet-map
+  (into {}
+    (map to-hash-map
+      (map #(str %)
+        (map char (range 97 123)))
+      (range 1 27))))
+
+(defn explode-to-letters [string]
+  "Turn a string number into a sequence of its digits"
+      (map str (seq string)))
+
+(defn string-value [string]
+  (base/sum
+    (map #(get alphabet-map (keyword %))
+      (explode-to-letters (str/lower-case string)))))
+
+(defn file-to-list [file]
+  "Takes a text file and turns it to a list of it's contents"
+  (map #(str/replace % #"\"" "")
+    (str/split (slurp file) #",")))
+
+(defn file-to-values [file]
+  "Takes in a file and turns it into a sequence letter sequences of the words"
+  (map string-value
+    (sort
+      (file-to-list file))))
+
+(defn pract [file]
+  (let [test (sort (file-to-list file))]
+    (map #(* (string-value %) (+ (.indexOf test %) 1)) test)))
+
+(defn pe22 [file]
+  "Project euler 22"
+  (base/sum pract))
